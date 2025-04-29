@@ -7,6 +7,9 @@ from tkinter import ttk, messagebox
 import sys
 import logging
 
+from utils.logger import setup_logger
+from utils.macos_utils import check_system_requirements
+
 # 로거 설정
 logger = logging.getLogger(__name__)
 
@@ -20,6 +23,9 @@ class MainWindow(tk.Tk):
     def __init__(self):
         """메인 윈도우 초기화"""
         super().__init__()
+        
+        # 시스템 요구사항 확인
+        self._check_requirements()
         
         # 윈도우 기본 설정
         self.title("GitHub 저장소 관리자")
@@ -40,6 +46,33 @@ class MainWindow(tk.Tk):
         self.status_message("준비")
         
         logger.info("메인 윈도우가 초기화되었습니다.")
+    
+    def _check_requirements(self):
+        """시스템 요구사항 확인"""
+        requirements = check_system_requirements()
+        
+        if not requirements["is_macos"]:
+            messagebox.showerror(
+                "시스템 요구사항 오류",
+                "이 애플리케이션은 macOS에서만 실행할 수 있습니다."
+            )
+            sys.exit(1)
+        
+        if not requirements["git_available"]:
+            messagebox.showerror(
+                "시스템 요구사항 오류",
+                "Git이 설치되어 있지 않습니다. Git을 설치한 후 다시 실행하세요."
+            )
+            sys.exit(1)
+        
+        if not requirements["config_permission"]:
+            messagebox.showerror(
+                "권한 오류",
+                "애플리케이션 설정 디렉토리에 쓰기 권한이 없습니다."
+            )
+            sys.exit(1)
+        
+        logger.info("시스템 요구사항 확인 완료")
     
     def _init_menu(self):
         """메뉴 바 초기화"""
